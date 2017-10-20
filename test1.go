@@ -38,7 +38,7 @@ func main() {
 	if length != 13 {
 		return
 	}
-	//tttt
+	//ttttt
 	fmt.Println(len(zwseq))
 	padz := 10-len(zwseq)+1
 	fmt.Println(padz)
