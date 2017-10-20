@@ -7,15 +7,20 @@ import (
 	//"log"
 	//"gopkg.in/mgo.v2"
 	//"gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2"
+	//"gopkg.in/mgo.v2/bson"
+	"time"
 )
+
+type Kwallet struct {
+	Name 		string `json:"Name",bson:"Name"`
+	CitizenId          string `json:"CitizenId",bson:"_CitizenId,omitempty"`
+	WID  int    `json:"WID,bson:"WID"`
+	OpenDateTime        time.Time `json:"OpenDateTime",bson:"OpenDateTime"`
+	Balance     string `json:"Balance",bson:"Balance"`
+}
 //English Character only + “,” + “-“ + “.” + “ “
 var IsLetter = regexp.MustCompile(`^[a-zA-Z ,.-]+$`).MatchString
-
-type Person struct {
-	Name string
-	ZID string
-
-}
 
 func main() {
 	var Name string = "Mr.Test Jung"
@@ -48,6 +53,29 @@ func main() {
 		//substring := zwseq[fpadz:fpadz]
 		//fmt.Println(substring)
 		//chkdigit += i*substring
+	}
+	session, err := mgo.Dial("mongodb://127.0.0.1:27017/Kwallet")
+
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+
+	c := session.DB("Kwallet").C("insrt")
+
+	doc := Kwallet{
+		Name:           Name,
+		CitizenId:       ZID,
+		WID: 1,
+		OpenDateTime:    time.Now(),
+		Balance:   "0.00",
+
+	}
+
+	err = c.Insert(doc)
+	if err != nil {
+		panic(err)
 	}
 
 }
