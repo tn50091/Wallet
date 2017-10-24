@@ -16,7 +16,7 @@ import (
 var addr = flag.String("addr", "127.0.0.1:8082", "Rest Service")
 
 //English Character only + “,” + “-“ + “.” + “ “
-var IsLetter = regexp.MustCompile(`^[a-zA-Z ,.-]+$`).MatchString
+var IsChar = regexp.MustCompile(`^[a-zA-Z ,.-]+$`).MatchString
 
 type Ewallet struct {
 	Fullname		string	`json:"fullname"`
@@ -104,7 +104,7 @@ func createEwallet(s *mgo.Session) func(w http.ResponseWriter, r *http.Request) 
 		}
 
 		fullname := ewallet.Fullname
-		if IsLetter(fullname) != true {
+		if IsChar(fullname) != true {
 			ErrorWithJSON(w, "Invalid Full Name", http.StatusBadRequest)
 			return
 		}
