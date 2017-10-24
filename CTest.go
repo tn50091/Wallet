@@ -57,7 +57,7 @@ func ensureIndex(s *mgo.Session) {
 	c := session.DB("eWallet").C("account")
 
 	index := mgo.Index{
-		Key:        []string{"wallet_id"},
+		Key:        []string{"citizen_id"},
 		Unique:     true,
 		DropDups:   true,
 		Background: true,
@@ -74,15 +74,6 @@ func checkCitizenID(cid string) bool {
 	if len(cid) != 13 {
 		error = true
 	}
-	return error
-}
-
-func findCitizenID(s *mgo.Session, cid string) bool {
-	error := false
-
-	session := s.Copy()
-	defer session.Close()
-
 	return error
 }
 
