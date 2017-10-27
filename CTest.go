@@ -11,6 +11,7 @@ import (
 	"time"
 	"flag"
 	"regexp"
+	"strings"
 )
 
 var addr = flag.String("addr", "127.0.0.1:8082", "Rest Service")
@@ -105,10 +106,10 @@ func createEwallet(s *mgo.Session) func(w http.ResponseWriter, r *http.Request) 
 			ErrorWithJSON(w, "Invalid Citizen ID", http.StatusBadRequest)
 			return
 		}
-
+		fname := strings.ToUpper(fullname)
 		c := session.DB("eWallet").C("account")
 
-		err = c.Insert(bson.M{"wallet_id": "00003","citizen_id": citizen,"full_name": fullname,"open_datetime": time.Now(),"ledger_balance": "0.00"})
+		err = c.Insert(bson.M{"wallet_id": "00003","citizen_id": citizen,"full_name": fname,"open_datetime": time.Now(),"ledger_balance": "0.00"})
 		if err != nil {
 			if mgo.IsDup(err) {
 				ErrorWithJSON(w, "E-Wallet already exists", http.StatusBadRequest)
