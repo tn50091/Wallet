@@ -11,6 +11,9 @@ import (
 	"time"
 	"flag"
 	"regexp"
+	"strings"
+//	"go/doc"
+	"strconv"
 )
 
 var addr = flag.String("addr", "127.0.0.1:8082", "Rest Service")
@@ -21,6 +24,10 @@ var IsChar = regexp.MustCompile(`^[a-zA-Z ,.-]+$`).MatchString
 type Ewallet struct {
 	Fullname		string	`json:"fullname"`
 	Citizenid		string	`json:"citizenid"`
+}
+type WallSeq struct {
+	Typ 	string `bson:"typ"`
+	Seq		int	`bson:"seq"`
 }
 
 func ErrorWithJSON(w http.ResponseWriter, message string, code int) {
@@ -70,11 +77,11 @@ func ensureIndex(s *mgo.Session) {
 }
 
 func checkCitizenID(cid string) bool {
-	error := false
+	err := false
 	if len(cid) != 13 {
-		error = true
+		err = true
 	}
-	return error
+	return err
 }
 
 func homepage(w http.ResponseWriter, r *http.Request) {
@@ -105,10 +112,14 @@ func createEwallet(s *mgo.Session) func(w http.ResponseWriter, r *http.Request) 
 			ErrorWithJSON(w, "Invalid Citizen ID", http.StatusBadRequest)
 			return
 		}
+		fname := strings.ToUpper(fullname)
+
+		zwallid := genWalletID(s)
+		fmt.Print(zwallid)
 
 		c := session.DB("eWallet").C("account")
 
-		err = c.Insert(bson.M{"wallet_id": "00003","citizen_id": citizen,"full_name": fullname,"open_datetime": time.Now(),"ledger_balance": "0.00"})
+		err = c.Insert(bson.M{"wallet_id": zwallid ,"citizen_id": citizen,"full_name": fname,"open_datetime": time.Now(),"ledger_balance": "0.00"})
 		if err != nil {
 			if mgo.IsDup(err) {
 				ErrorWithJSON(w, "E-Wallet already exists", http.StatusBadRequest)
@@ -137,3 +148,75 @@ func createEwallet(s *mgo.Session) func(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+func genWalletID(s *mgo.Session) string {
+	fmt.Println("a")
+	session := s.Copy()
+	defer session.Close()
+	result :=  WallSeq {}
+	c := session.DB("eWallet").C("WallSeq")
+	err := c.Find(bson.M{"typ":"SEQ"}).One(&result)
+	fmt.Println(result.Seq)
+	if err != nil {
+		fmt.Println("b")
+		fmt.Println(err)
+	}
+
+	fmt.Println("Results All: ", result)
+	result.Seq ++
+
+	if result.Seq ==1 {
+		fmt.Println("c")
+		err = c.Insert(bson.M{"typ":"SEQ","seq": 1})
+		if err != nil {
+			//error
+			fmt.Println("d")
+		}
+	} else {
+		fmt.Println("e")
+		err = c.Update(bson.M{"typ":"SEQ"}, bson.M{"$set": bson.M{"seq": result.Seq}})
+		if err != nil {
+			fmt.Println("f")
+			fmt.Println(err)
+		}
+	}
+
+	za := result.Seq
+	zb := format(za)
+
+	fmt.Println("write zb"+strconv.Itoa(zb))
+	//return result.Seq
+	zc := fmt.Sprintf("%010d",za)
+	return "1"+zc+strconv.Itoa(zb)
+}
+
+func format(zwseq int)int {
+
+	zstr := strconv.Itoa(zwseq)
+	padz := len(zstr)
+	fmt.Println(padz)
+	fmt.Println(zstr)
+	zsum :=0
+		for i := padz; i >= 1; i-- {
+			fmt.Println("for loop")
+			fmt.Println(zsum)
+			fmt.Println(i)
+			substring := string(zstr[i-1])
+			fmt.Println(substring)
+			zintcon,_ := strconv.Atoi(substring)
+			fmt.Println(zintcon)
+			if i-1 == 1 {zsum += zintcon*11}
+			if i-1 == 2 {zsum += zintcon*10}
+			if i-1 == 3 {zsum += zintcon*9}
+			if i-1 == 4 {zsum += zintcon*8}
+			if i-1 == 5 {zsum += zintcon*7}
+			if i-1 == 6 {zsum += zintcon*6}
+			if i-1 == 7 {zsum += zintcon*5}
+			if i-1 == 8 {zsum += zintcon*4}
+			if i-1 == 9 {zsum += zintcon*3}
+			if i-1 == 10 {zsum += zintcon*2}
+
+			fmt.Println(zsum)
+		}
+		fmt.Println(zsum)
+		return zsum%10
+}
