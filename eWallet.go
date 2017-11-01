@@ -198,6 +198,7 @@ func format(zwseq int)int {
 	padz := len(zstr)
 	//fmt.Println(padz)
 	//fmt.Println(zstr)
+	//fmt.Println(zsum)
 	zsum :=0
 	for i := padz; i >= 1; i-- {
 		//fmt.Println("for loop")
